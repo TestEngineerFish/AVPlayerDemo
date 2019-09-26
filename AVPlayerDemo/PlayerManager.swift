@@ -6,9 +6,22 @@
 //  Copyright © 2019 沙庭宇. All rights reserved.
 //
 
-import AVFoundation
+import UIKit
 
-class PlayerManager: NSObject {
+struct PlayerManager {
 
+    var playerView: BPPlayerView?
+
+
+    init(path: String, frame: CGRect) {
+        playerView = BPPlayerView(frame: frame)
+        playerView?.makeData(path)
+        playerView?.makeUI()
+        playerView?.player.play()
+//        playerView?.setFullscreen(.left)
+    }
+
+    static func showVideo(sourcePath path: String) {
+    }
 
 }
