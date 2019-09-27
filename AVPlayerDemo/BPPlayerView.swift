@@ -10,16 +10,13 @@ import UIKit
 import AVFoundation
 import SnapKit
 
-enum RotateDirectionType {
-    case left, right, up
-}
+class BPPlayerView: UIView {
 
-class BPPlayerView: UIView, UIGestureRecognizerDelegate {
-
-    fileprivate let headerViewHeight: CGFloat = 64
+    fileprivate let headerViewHeight: CGFloat = 40
     fileprivate let footerViewHeight: CGFloat = 40
     fileprivate let padding: CGFloat          = 10
     fileprivate let aspectRatio: CGFloat      = kScreenHeight/kScreenWidth
+    fileprivate var isSliding                 = false
 
     var playerItem: AVPlayerItem?
     let player             = AVPlayer()
@@ -31,7 +28,7 @@ class BPPlayerView: UIView, UIGestureRecognizerDelegate {
     let progressSliderView = UISlider()
     let leftTimeLabel      = UILabel()
     let rightTimeLabel     = UILabel()
-    let fullscreenButton   = UIButton()
+    let speedButton        = UIButton()
     let footerView         = UIView()
     let backButton         = UIButton()
     let menuButton         = UIButton()
@@ -39,44 +36,61 @@ class BPPlayerView: UIView, UIGestureRecognizerDelegate {
 
     fileprivate var timer: Timer?
 
+    override init(frame: CGRect) {
+        super.init(frame: CGRect(x: frame.origin.x, y: kScreenHeight, width: frame.width, height: frame.height))
+        isUserInteractionEnabled = true
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // TODO: 设置UI
     func makeUI() {
         makeSubviews()
         makeHeaderSubviews()
-        addGresture()
+        makeFooterSubviews()
+        addNotifications()
     }
 
     /// 设置子视图
     private func makeSubviews() {
+
+        // 设置当前视图
         kWindow.addSubview(self)
-        let playHeight = kScreenWidth/aspectRatio
-        playerLayer.frame           = CGRect(x: 0, y: (self.height - playHeight)/2, width: kScreenWidth, height: playHeight)
+        self.backgroundColor = UIColor.black
+
+        // 设置播放视图
+        layer.addSublayer(playerLayer)
+        playerLayer.frame           = CGRect(x: 0, y: 0, width: width, height: height)
         playerLayer.videoGravity    = AVLayerVideoGravity.resizeAspect
         playerLayer.backgroundColor = UIColor.black.cgColor
-        layer.addSublayer(playerLayer)
 
         // 设置顶部遮罩层
         addSubview(coverView)
+        coverView.backgroundColor = UIColor.clear
         coverView.snp.makeConstraints { (make) in
-            make.top.equalTo(playerLayer.frame.minY)
-            make.width.equalTo(playerLayer.width)
-            make.height.equalTo(playerLayer.height)
+            make.top.bottom.equalToSuperview()
+            make.width.equalTo(self.snp.width)
             make.left.equalToSuperview()
         }
 
         // 设置顶部视图
         coverView.addSubview(headerView)
-        headerView.backgroundColor = UIColor.clear
+        headerView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
         headerView.snp.makeConstraints { (make) in
-            make.left.top.width.equalToSuperview()
+            make.top.equalToSuperview().offset(kStatusBarHeight)
+            make.left.width.equalToSuperview()
             make.height.equalTo(headerViewHeight)
         }
 
         // 设置底部视图
         coverView.addSubview(footerView)
-        footerView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        footerView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        let bottomOffset: CGFloat = iPhoneXLater ? -15 : 0
         footerView.snp.makeConstraints { (make) in
-            make.left.bottom.width.equalToSuperview()
+            make.bottom.equalToSuperview().offset(bottomOffset)
+            make.left.width.equalToSuperview()
             make.height.equalTo(footerViewHeight)
         }
 
@@ -90,26 +104,26 @@ class BPPlayerView: UIView, UIGestureRecognizerDelegate {
         // 设置返回按钮
         headerView.addSubview(backButton)
         backButton.setTitle(IconFont.back.rawValue, for: .normal)
-        backButton.titleLabel?.font = UIFont.iconFont(size: 16)
+        backButton.titleLabel?.font = UIFont.iconFont(size: 18)
         backButton.setTitleColor(UIColor.white, for: .normal)
-        backButton.addTarget(self, action: #selector(clickBackBtn), for: .touchUpInside)
+        backButton.addTarget(self, action: #selector(clickBackBtn(_:)), for: .touchUpInside)
         backButton.snp.makeConstraints { (make) in
             make.left.equalToSuperview().offset(15)
             make.top.bottom.equalToSuperview()
-            make.width.equalTo(headerView.height)
+            make.width.equalTo(headerViewHeight)
         }
 
         // 设置菜单按钮
         headerView.addSubview(menuButton)
         menuButton.frame = CGRect(x: headerView.width - headerView.height - 15, y: 0, width: headerView.height, height: headerView.height)
-        menuButton.setTitle(IconFont.publis.rawValue, for: .normal)
-        menuButton.titleLabel?.font = UIFont.iconFont(size: 16)
+        menuButton.setTitle(IconFont.menu.rawValue, for: .normal)
+        menuButton.titleLabel?.font = UIFont.iconFont(size: 18)
         menuButton.setTitleColor(UIColor.white, for: .normal)
-        menuButton.addTarget(self, action: #selector(clickMenuBtn), for: .touchUpInside)
+        menuButton.addTarget(self, action: #selector(clickMenuBtn(_:)), for: .touchUpInside)
         menuButton.snp.makeConstraints { (make) in
             make.right.equalToSuperview().offset(-15)
             make.top.bottom.equalToSuperview()
-            make.width.equalTo(headerView.height)
+            make.width.equalTo(headerViewHeight)
         }
     }
 
@@ -126,47 +140,47 @@ class BPPlayerView: UIView, UIGestureRecognizerDelegate {
         // 设置右侧时间视图
         footerView.addSubview(rightTimeLabel)
         // 设置全屏按钮
-        footerView.addSubview(fullscreenButton)
+        footerView.addSubview(speedButton)
 
-        playButton.setTitle(IconFont.back.rawValue, for: .normal)
-        playButton.setTitle(IconFont.publis.rawValue, for: .selected)
+        playButton.setTitle(IconFont.pause.rawValue, for: .normal)
+        playButton.setTitle(IconFont.play.rawValue, for: .selected)
         playButton.setTitleColor(UIColor.white, for: .normal)
-        playButton.titleLabel?.font = UIFont.iconFont(size: 16)
-        playButton.addTarget(self, action: #selector(clickPlayBtn), for: .touchUpInside)
+        playButton.titleLabel?.font = UIFont.iconFont(size: 18)
+        playButton.addTarget(self, action: #selector(clickPlayBtn(_:)), for: .touchUpInside)
         playButton.snp.makeConstraints { (make) in
             make.left.equalToSuperview().offset(15)
             make.top.bottom.equalToSuperview()
-            make.width.equalTo(footerView.height)
+            make.width.equalTo(footerViewHeight)
         }
 
-        leftTimeLabel.text          = "00:00"
+        leftTimeLabel.text          = "00:00:00"
         leftTimeLabel.textColor     = UIColor.white
         leftTimeLabel.font          = UIFont.systemFont(ofSize: 13)
         leftTimeLabel.textAlignment = .center
         leftTimeLabel.snp.makeConstraints { (make) in
             make.left.equalTo(playButton.snp.right).offset(padding)
-            make.width.equalTo(30)
+            make.width.equalTo(70)
             make.top.bottom.equalToSuperview()
         }
 
-        fullscreenButton.setTitle(IconFont.back.rawValue, for: .normal)
-        fullscreenButton.setTitle(IconFont.publis.rawValue, for: .selected)
-        fullscreenButton.setTitleColor(UIColor.white, for: .normal)
-        fullscreenButton.titleLabel?.font = UIFont.iconFont(size: 16)
-        fullscreenButton.addTarget(self, action: #selector(clickFullscreenBtn), for: .touchUpInside)
-        fullscreenButton.snp.makeConstraints { (make) in
+        speedButton.setTitle("1x", for: .normal)
+        speedButton.setTitle("2x", for: .selected)
+        speedButton.setTitleColor(UIColor.white, for: .normal)
+        speedButton.titleLabel?.font = UIFont.iconFont(size: 18)
+        speedButton.addTarget(self, action: #selector(clickSpeedBtn(_:)), for: .touchUpInside)
+        speedButton.snp.makeConstraints { (make) in
             make.right.equalToSuperview().offset(-15)
             make.top.bottom.equalToSuperview()
-            make.width.equalTo(footerView.height)
+            make.width.equalTo(footerViewHeight)
         }
 
-        rightTimeLabel.text          = "00:00"
+        rightTimeLabel.text          = "00:00:00"
         rightTimeLabel.textColor     = UIColor.white
         rightTimeLabel.font          = UIFont.systemFont(ofSize: 13)
         rightTimeLabel.textAlignment = .center
         rightTimeLabel.snp.makeConstraints { (make) in
-            make.right.equalTo(fullscreenButton.snp.left).offset(-padding)
-            make.width.equalTo(30)
+            make.right.equalTo(speedButton.snp.left).offset(-padding)
+            make.width.equalTo(70)
             make.top.bottom.equalToSuperview()
         }
 
@@ -194,16 +208,6 @@ class BPPlayerView: UIView, UIGestureRecognizerDelegate {
         }
     }
 
-    /// 添加手势事件
-    private func addGresture() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(tapScreenView(_:)))
-        tap.delegate = self
-        addGestureRecognizer(tap)
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(panScreenView(_:)))
-        pan.delegate = self
-        addGestureRecognizer(pan)
-    }
-
     // TODO: 设置数据
 
     /// 播放器设置
@@ -222,65 +226,156 @@ class BPPlayerView: UIView, UIGestureRecognizerDelegate {
         player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue: .main) { (time) in
             self.refreshTimeObserver(time)
         }
-//        addProgressObserver()
-//        addPlayerItemobserver()
+    }
+
+
+    private func addNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(playFinishNotification), name: Notification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceRotateNotification), name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+
+    // TODO: 通知处理
+    @objc func playFinishNotification() {
+        pauseVideo()
+    }
+
+    @objc func deviceRotateNotification() {
+        switch UIDevice.current.orientation {
+        case .portrait:
+            headerView.snp.updateConstraints { (make) in
+                make.top.equalToSuperview().offset(kStatusBarHeight)
+            }
+        case .landscapeLeft, .landscapeRight, .portraitUpsideDown:
+            headerView.snp.updateConstraints { (make) in
+                make.top.equalToSuperview()
+            }
+        default:
+            break
+        }
+        UIView.animate(withDuration: 0.25) {
+            self.frame = CGRect(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight)
+            self.playerLayer.frame = CGRect(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight)
+        }
+    }
+
+    // TODO: 手势处理
+
+    @objc func singleTapScreenView(_ sender: UITapGestureRecognizer) {
+        print("singleTapScreenView")
+    }
+
+    @objc func doubleTapScreenView(_ sender: UITapGestureRecognizer) {
+        print("doubleTapScreenView")
+        if playButton.isSelected {
+            playVideo()
+        } else {
+            pauseVideo()
+        }
+    }
+
+    @objc func panScreenView(_ sender: UIPanGestureRecognizer) {
+        print("panScreenView")
     }
 
     // TODO: 事件处理
 
-    @objc func clickBackBtn() {
-
+    func playVideo() {
+        playButton.isSelected = false
+        self.player.play()
     }
 
-    @objc func clickMenuBtn() {
-
+    func pauseVideo() {
+        playButton.isSelected = true
+        self.player.pause()
     }
 
-    @objc func clickPlayBtn() {
-
-    }
-
-    @objc func clickFullscreenBtn() {
-
-    }
-
-    func setFullscreen(_ direcction: RotateDirectionType) {
-        kWindow.addSubview(self)
-        UIView.animate(withDuration: 0.25) {
-            if direcction == .left {
-                self.transform = CGAffineTransform(rotationAngle: CGFloat.pi/2)
-            } else {
-                self.transform = CGAffineTransform(rotationAngle: -CGFloat.pi/2)
+    func seekToVideo(startTime time: Int64) {
+        let cmTime = CMTimeMake(value: time, timescale: 1)
+        player.seek(to: cmTime) { (finish) in
+            if finish {
+                self.playVideo()
             }
         }
-        self.snp.updateConstraints { (make) in
-            make.edges.equalToSuperview()
+    }
+
+    /// 显示视频播放页
+    func showVideo() {
+        UIView.animate(withDuration: 0.25, animations: {
+            self.transform = CGAffineTransform(translationX: 0, y: -kScreenHeight)
+        }) { (finish) in
+            if finish {
+                self.playVideo()
+            }
         }
+    }
+
+    /// 隐藏视频播放页
+    func hideVideo() {
+        UIView.animate(withDuration: 0.25, animations: {
+            self.transform = .identity
+            self.pauseVideo()
+        }) { (finish) in
+            if finish {
+                self.removeFromSuperview()
+            }
+        }
+    }
+
+    @objc func clickBackBtn(_ button: UIButton) {
+        hideVideo()
+    }
+
+    @objc func clickMenuBtn(_ button: UIButton) {
+
+    }
+
+    @objc func clickPlayBtn(_ button: UIButton) {
+        button.isSelected = !button.isSelected
+        if button.isSelected {
+            pauseVideo()
+        } else {
+            playVideo()
+        }
+    }
+
+    @objc func clickSpeedBtn(_ button: UIButton) {
+        button.isSelected = !button.isSelected
+
     }
 
     @objc func willDragSlider(_ slider: UISlider) {
-
+        pauseVideo()
+        isSliding = true
     }
 
     @objc func draggingSlider(_ slider: UISlider) {
-
+        let totalTime = Float(playerItem?.duration.seconds ?? 0.0)
+        let currentTime = totalTime * slider.value
+        seekToVideo(startTime: Int64(currentTime))
     }
 
     @objc func finishDragSlider(_ slider: UISlider) {
-
-    }
-
-    @objc func tapScreenView(_ sender: UITapGestureRecognizer) {
-
-    }
-
-    @objc func panScreenView(_ sender: UIPanGestureRecognizer) {
-
+        playVideo()
+        isSliding = false
     }
 
     /// 更新时间事件
     func refreshTimeObserver(_ time: CMTime) {
-
+        guard let item = playerItem else {
+            return
+        }
+        let totalTime   = item.duration.seconds
+        let currentTime = time.seconds
+        if totalTime.isNaN || currentTime.isNaN {
+            return
+        }
+        // 更新sliderView
+        if !isSliding {
+            progressSliderView.value = Float(currentTime/totalTime)
+        }
+        // 更新显示的时间
+        leftTimeLabel.text  = transformTime(Int(currentTime))
+        rightTimeLabel.text = transformTime(Int(totalTime))
     }
 
     // TODO: 工具函数
@@ -293,4 +388,12 @@ class BPPlayerView: UIView, UIGestureRecognizerDelegate {
         let item    = AVPlayerItem(url: url)
         return item
     }
+
+    private func transformTime(_ time: Int) -> String {
+        let hour   = time / 3600
+        let minute = time % 3600 / 60
+        let second = time % 60
+        return String(format: "%02ld:%02ld:%02ld", hour, minute, second)
+    }
+
 }

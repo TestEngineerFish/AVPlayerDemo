@@ -11,8 +11,9 @@ public enum IconFont: String {
     case close  = "\u{e61e}" // 关闭图标
     case close1 = "\u{e62f}" // 关闭图标(带圆圈的)
     case publis = "\u{e718}" // 加号图标
-    // 菜单图标
-    // 播放图标
-    // 暂停图标
-    // 全屏图标
+    case menu   = "\u{e60c}" // 菜单图标
+    case play   = "\u{e612}" // 播放图标
+    case pause  = "\u{e6bc}" // 暂停图标
+    case zoom   = "\u{e613}" // 放大图标
+    case lessen = "\u{e61b}" // 缩小图标
 }

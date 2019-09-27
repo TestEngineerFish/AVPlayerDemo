@@ -58,7 +58,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let path      = Bundle.main.path(forResource: "slider", ofType: "mp4") ?? ""
+        let path      = Bundle.main.path(forResource: "objectC", ofType: "mp4") ?? ""
         let manager = PlayerManager(path: path, frame: kWindow.bounds)
 
 //        let vc = ViewController()
