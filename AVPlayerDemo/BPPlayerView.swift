@@ -320,6 +320,10 @@ class BPPlayerView: UIView {
             }
         }
     }
+    
+    func setSpeedPlay(_ rate: Float) {
+        player.rate = rate
+    }
 
     @objc func clickBackBtn(_ button: UIButton) {
         hideVideo()
@@ -340,7 +344,11 @@ class BPPlayerView: UIView {
 
     @objc func clickSpeedBtn(_ button: UIButton) {
         button.isSelected = !button.isSelected
-
+        if button.isSelected {
+            setSpeedPlay(2)
+        } else {
+            setSpeedPlay(1)
+        }
     }
 
     @objc func willDragSlider(_ slider: UISlider) {
