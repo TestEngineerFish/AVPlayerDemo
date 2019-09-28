@@ -58,8 +58,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let path      = Bundle.main.path(forResource: "Untitled", ofType: "mov") ?? ""
-        let manager = PlayerManager(path: path, frame: kWindow.bounds)
+        BPFileManager.default.getDocumentList()
+//        let path      = Bundle.main.path(forResource: "Untitled", ofType: "mov") ?? ""
+//        let manager = PlayerManager(path: path, frame: kWindow.bounds)
 
 //        let vc = ViewController()
 //        vc.title = documentList[indexPath.row]

@@ -9,19 +9,40 @@
 import Foundation
 
 struct BPFileManager {
+    
+    static var `default` = BPFileManager()
 
-    static func getDocumentList() -> [String]? {
+    func getDocumentList() -> [String]? {
         var docList = [String]()
-        guard let documentPath = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.userDomainMask, true).first else {
-            return nil
+        if let path = getPath(.documentDirectory) {
+            do {
+                docList = try FileManager.default.contentsOfDirectory(atPath: path)
+            } catch {
+                return nil
+            }
+            docList.forEach { (name) in
+                getDocumentSource(path + "/" + name)
+            }
         }
-        do {
-            docList = try FileManager.default.contentsOfDirectory(atPath: documentPath)
-        } catch {
-            return nil
-        }
-        print(docList)
+
         return docList
+    }
+    
+    func getDocumentSource(_ path: String) {
+        do {
+            let dict = try FileManager.default.attributesOfFileSystem(forPath: path)
+            print(dict)
+        } catch {
+            print("???")
+        }
+        
+    }
+    
+    private func getPath(_ type: FileManager.SearchPathDirectory) -> String? {
+        guard let path = NSSearchPathForDirectoriesInDomains(type, FileManager.SearchPathDomainMask.userDomainMask, true).first else {
+            return nil
+        }
+        return path
     }
 
 }

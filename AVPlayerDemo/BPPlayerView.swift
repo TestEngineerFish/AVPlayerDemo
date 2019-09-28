@@ -341,7 +341,7 @@ class BPPlayerView: UIView {
             playVideo()
         }
     }
-
+//SOZ20190828676672
     @objc func clickSpeedBtn(_ button: UIButton) {
         button.isSelected = !button.isSelected
         if button.isSelected {
