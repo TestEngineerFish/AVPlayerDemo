@@ -24,8 +24,8 @@ xcuserdata
 *.xcuserstate
 *.xcscmblueprint
 #*.xcscheme
+*.mov
 *.mp4
-
 ## Obj-C/Swift specific
 *.hmap
 *.ipa
