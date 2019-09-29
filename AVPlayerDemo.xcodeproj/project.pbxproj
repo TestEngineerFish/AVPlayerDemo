@@ -13,7 +13,6 @@
 		2256EED02334704800D1F6AA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2256EECE2334704800D1F6AA /* Main.storyboard */; };
 		2256EED22334704900D1F6AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2256EED12334704900D1F6AA /* Assets.xcassets */; };
 		2256EED52334704900D1F6AA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2256EED32334704900D1F6AA /* LaunchScreen.storyboard */; };
-		2256EEDD233473A500D1F6AA /* slider.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 2256EEDC233473A500D1F6AA /* slider.mp4 */; };
 		22642BB1233B6742004E1DF9 /* FileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22642BB0233B6742004E1DF9 /* FileManager.swift */; };
 		22642BC2233B73A0004E1DF9 /* BPBaseButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22642BB4233B73A0004E1DF9 /* BPBaseButton.swift */; };
 		22642BC3233B73A0004E1DF9 /* BPBaseImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22642BB5233B73A0004E1DF9 /* BPBaseImageView.swift */; };
@@ -58,8 +57,8 @@
 		22642C10233B73B7004E1DF9 /* DeviceInfoGlobal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22642BF2233B73B7004E1DF9 /* DeviceInfoGlobal.swift */; };
 		22642C16233DBF42004E1DF9 /* iconfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 22642C14233DBDBC004E1DF9 /* iconfont.ttf */; };
 		22642C1A233E3AF3004E1DF9 /* PlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22642C19233E3AF3004E1DF9 /* PlayerManager.swift */; };
+		22A6B1A92340482F00959906 /* BPFileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A6B1A82340482F00959906 /* BPFileModel.swift */; };
 		3244383DDFF3ACE42862E13D /* Pods_AVPlayerDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C98A338DAB6E29F6606F31A /* Pods_AVPlayerDemo.framework */; };
-		CFC61430233E66DD00FA8713 /* Untitled.mov in Resources */ = {isa = PBXBuildFile; fileRef = CFC6142F233E66DD00FA8713 /* Untitled.mov */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,7 +70,6 @@
 		2256EED12334704900D1F6AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2256EED42334704900D1F6AA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2256EED62334704900D1F6AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2256EEDC233473A500D1F6AA /* slider.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = slider.mp4; sourceTree = "<group>"; };
 		22642BB0233B6742004E1DF9 /* FileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager.swift; sourceTree = "<group>"; };
 		22642BB4233B73A0004E1DF9 /* BPBaseButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BPBaseButton.swift; sourceTree = "<group>"; };
 		22642BB5233B73A0004E1DF9 /* BPBaseImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BPBaseImageView.swift; sourceTree = "<group>"; };
@@ -118,9 +116,9 @@
 		22642BF2233B73B7004E1DF9 /* DeviceInfoGlobal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceInfoGlobal.swift; sourceTree = "<group>"; };
 		22642C14233DBDBC004E1DF9 /* iconfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = iconfont.ttf; sourceTree = "<group>"; };
 		22642C19233E3AF3004E1DF9 /* PlayerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerManager.swift; sourceTree = "<group>"; };
+		22A6B1A82340482F00959906 /* BPFileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BPFileModel.swift; sourceTree = "<group>"; };
 		3C98A338DAB6E29F6606F31A /* Pods_AVPlayerDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AVPlayerDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C643D18768B2843763DF9843 /* Pods-AVPlayerDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AVPlayerDemo.debug.xcconfig"; path = "Target Support Files/Pods-AVPlayerDemo/Pods-AVPlayerDemo.debug.xcconfig"; sourceTree = "<group>"; };
-		CFC6142F233E66DD00FA8713 /* Untitled.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = Untitled.mov; sourceTree = "<group>"; };
 		F56752D6E7E1E641EC000996 /* Pods-AVPlayerDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AVPlayerDemo.release.xcconfig"; path = "Target Support Files/Pods-AVPlayerDemo/Pods-AVPlayerDemo.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -187,6 +185,7 @@
 				2256EED12334704900D1F6AA /* Assets.xcassets */,
 				2256EED32334704900D1F6AA /* LaunchScreen.storyboard */,
 				223AC2192334D10A00522E1B /* BPPlayerView.swift */,
+				22A6B1A82340482F00959906 /* BPFileModel.swift */,
 			);
 			path = AVPlayerDemo;
 			sourceTree = "<group>";
@@ -322,9 +321,7 @@
 			isa = PBXGroup;
 			children = (
 				22642C14233DBDBC004E1DF9 /* iconfont.ttf */,
-				CFC6142F233E66DD00FA8713 /* Untitled.mov */,
 				2256EED62334704900D1F6AA /* Info.plist */,
-				2256EEDC233473A500D1F6AA /* slider.mp4 */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -389,10 +386,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2256EEDD233473A500D1F6AA /* slider.mp4 in Resources */,
 				2256EED52334704900D1F6AA /* LaunchScreen.storyboard in Resources */,
 				2256EED22334704900D1F6AA /* Assets.xcassets in Resources */,
-				CFC61430233E66DD00FA8713 /* Untitled.mov in Resources */,
 				22642C16233DBF42004E1DF9 /* iconfont.ttf in Resources */,
 				2256EED02334704800D1F6AA /* Main.storyboard in Resources */,
 			);
@@ -455,6 +450,7 @@
 				22642BF4233B73B7004E1DF9 /* BPAlerViewTwoButton.swift in Sources */,
 				22642BFC233B73B7004E1DF9 /* UIColor+Extension.swift in Sources */,
 				22642C00233B73B7004E1DF9 /* UIImage+Extension.swift in Sources */,
+				22A6B1A92340482F00959906 /* BPFileModel.swift in Sources */,
 				22642C0C233B73B7004E1DF9 /* AppDelegate+Extension.swift in Sources */,
 				22642C07233B73B7004E1DF9 /* NSObject+CrashDefender.m in Sources */,
 				22642BCD233B73A0004E1DF9 /* BPBaseTableViewController.swift in Sources */,

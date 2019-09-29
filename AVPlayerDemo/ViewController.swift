@@ -58,7 +58,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        BPFileManager.default.getDocumentList()
+        let files = BPFileManager.default.getFilesList()
+        print(files)
 //        let path      = Bundle.main.path(forResource: "Untitled", ofType: "mov") ?? ""
 //        let manager = PlayerManager(path: path, frame: kWindow.bounds)
 
