@@ -18,6 +18,8 @@ class PlayerManager: NSObject, UIGestureRecognizerDelegate {
         playerView?.makeData(path)
         playerView?.makeUI()
         addGresture()
+    }
+    func playVideo() {
         playerView?.showVideo()
     }
 

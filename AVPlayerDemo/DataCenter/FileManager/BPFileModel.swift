@@ -11,6 +11,7 @@ import Foundation
 enum BPFileType {
     case unknown
     case folder
+    case text
     case image
     case audiovisual
 }
@@ -19,7 +20,7 @@ struct BPFileModel {
     var path: String?
     var name: String?
     var size: Float?
-    var type: BPFileType?
+    var type = BPFileType.unknown
     var date: Date?
 
 }

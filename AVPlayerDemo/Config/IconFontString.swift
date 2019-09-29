@@ -16,4 +16,10 @@ public enum IconFont: String {
     case pause  = "\u{e6bc}" // 暂停图标
     case zoom   = "\u{e613}" // 放大图标
     case lessen = "\u{e61b}" // 缩小图标
+    // ---- 文件图标 ----
+    case folderFile  = "\u{e60a}" // 文件夹图标
+    case textFile    = "\u{e609}" // 文本图标
+    case imageFile   = "\u{e608}" // 图片图标
+    case videoFile   = "\u{e60e}" // 视频图标
+    case unknownFIle = "\u{e604}" // 未知图标
 }

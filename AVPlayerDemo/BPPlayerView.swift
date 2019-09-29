@@ -78,8 +78,9 @@ class BPPlayerView: UIView {
         // 设置顶部视图
         coverView.addSubview(headerView)
         headerView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        let topHeight = UIDevice.current.orientation == .faceUp ? kStatusBarHeight : 0
         headerView.snp.makeConstraints { (make) in
-            make.top.equalToSuperview().offset(kStatusBarHeight)
+            make.top.equalToSuperview().offset(topHeight)
             make.left.width.equalToSuperview()
             make.height.equalTo(headerViewHeight)
         }
@@ -262,6 +263,11 @@ class BPPlayerView: UIView {
 
     @objc func singleTapScreenView(_ sender: UITapGestureRecognizer) {
         print("singleTapScreenView")
+        if headerView.transform.ty == .zero {
+            hideToolBar()
+        } else {
+            showToolBar()
+        }
     }
 
     @objc func doubleTapScreenView(_ sender: UITapGestureRecognizer) {
@@ -321,7 +327,24 @@ class BPPlayerView: UIView {
         }
     }
     
-    func setSpeedPlay(_ rate: Float) {
+     /// 隐藏上下工具栏
+    func hideToolBar() {
+        UIView.animate(withDuration: 0.25) {
+            self.headerView.transform = CGAffineTransform(translationX: 0, y: -self.headerView.bottom)
+            self.footerView.transform = CGAffineTransform(translationX: 0, y: kScreenHeight - self.footerView.top)
+        }
+    }
+    
+   
+     /// 显示上下工具栏
+    private func showToolBar() {
+        UIView.animate(withDuration: 0.25) {
+            self.headerView.transform = .identity
+            self.footerView.transform = .identity
+        }
+    }
+   
+    private func setSpeedPlay(_ rate: Float) {
         player.rate = rate
     }
 
