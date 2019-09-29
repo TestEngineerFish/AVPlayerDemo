@@ -12,10 +12,9 @@ import SnapKit
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
     let tableView = UITableView()
-
     var playerManager: PlayerManager?
-
-    var documentList = ["我是第一个目录","我是第二个目录"]
+    var documentPath: String?
+    var documentList = [BPFileModel]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,19 +23,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     func _initUI() {
-//        let activity = UIActivityIndicatorView(style: .gray)
-//        self.view.addSubview(activity)
-//        activity.startAnimating()
-        self.navigationController?.title = "Document List"
+        self.title = "Document List"
         view.addSubview(tableView)
+        tableView.delegate = self
+        tableView.dataSource = self
         tableView.snp.makeConstraints { (make) in
             make.edges.equalToSuperview()
         }
     }
 
     func _setData() {
-        tableView.delegate = self
-        tableView.dataSource = self
+        documentList = BPFileManager.default.getFilesModel(documentPath)
         tableView.reloadData()
     }
 
@@ -46,10 +43,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         var cell = tableView.dequeueReusableCell(withIdentifier: "cell")
+        let fileModel = documentList[indexPath.row]
         if cell == nil {
             cell = UITableViewCell(style: .default, reuseIdentifier: "cell")
         }
-        cell?.textLabel?.text = documentList[indexPath.row]
+        cell?.textLabel?.text = fileModel.name
         return cell!
     }
 
@@ -58,14 +56,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let files = BPFileManager.default.getFilesList()
-        print(files)
-//        let path      = Bundle.main.path(forResource: "Untitled", ofType: "mov") ?? ""
-//        let manager = PlayerManager(path: path, frame: kWindow.bounds)
-
-//        let vc = ViewController()
-//        vc.title = documentList[indexPath.row]
-//        self.navigationController?.pushViewController(vc, animated: true)
+        let fileModel = documentList[indexPath.row]
+        if fileModel.type == .folder {
+            let vc = ViewController()
+            vc.title = fileModel.name
+            vc.documentPath = fileModel.path
+            self.navigationController?.pushViewController(vc, animated: true)
+        } else {
+            self.view.toast("显示播放页面")
+        }
+        
     }
 
     override var prefersStatusBarHidden: Bool {

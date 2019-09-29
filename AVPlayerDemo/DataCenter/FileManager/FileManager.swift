@@ -14,31 +14,25 @@ struct BPFileManager {
     
     static var `default` = BPFileManager()
 
-    func getFilesList() -> [BPFileModel]? {
-        var fileModelList = [BPFileModel]()
-        if let documentPath = getPath(.documentDirectory) {
-            fileModelList = getFilesModel(documentPath)
-        }
-        return fileModelList
-    }
-
-    /// 获取目录下所有文件路径
+    /// 获取目录下所有文件
     /// - Parameter path: 目录路径
-    /// - Returns: 目录下文件的路径列表
-    private func getFilesModel(_ path: String) -> [BPFileModel] {
+    /// - Returns: 目录下所有文件列表
+    func getFilesModel(_ path: String?) -> [BPFileModel] {
         var modelList = [BPFileModel]()
-        do {
-            let fileNameList = try FileManager.default.contentsOfDirectory(atPath: path)
-            fileNameList.forEach { (fileName) in
-                let filePath = path + "/" + fileName
-                var model = BPFileModel()
-                model.name = fileName
-                model.path = filePath
-                model.type = getFileType(filePath)
-                modelList.append(model)
+        if let _path = path ?? getPath(.documentDirectory) {
+            do {
+                let fileNameList = try FileManager.default.contentsOfDirectory(atPath: _path)
+                fileNameList.forEach { (fileName) in
+                    let filePath = _path + "/" + fileName
+                    var model = BPFileModel()
+                    model.name = fileName
+                    model.path = filePath
+                    model.type = getFileType(filePath)
+                    modelList.append(model)
+                }
+            } catch {
+                print("获取目录下文件失败")
             }
-        } catch {
-            print("获取目录下文件失败")
         }
         return modelList
     }

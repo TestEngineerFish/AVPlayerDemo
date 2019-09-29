@@ -185,7 +185,6 @@
 				2256EED12334704900D1F6AA /* Assets.xcassets */,
 				2256EED32334704900D1F6AA /* LaunchScreen.storyboard */,
 				223AC2192334D10A00522E1B /* BPPlayerView.swift */,
-				22A6B1A82340482F00959906 /* BPFileModel.swift */,
 			);
 			path = AVPlayerDemo;
 			sourceTree = "<group>";
@@ -202,6 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				22642BB0233B6742004E1DF9 /* FileManager.swift */,
+				22A6B1A82340482F00959906 /* BPFileModel.swift */,
 			);
 			path = FileManager;
 			sourceTree = "<group>";
