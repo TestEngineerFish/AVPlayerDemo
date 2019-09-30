@@ -8,13 +8,29 @@
 
 import UIKit
 import AVFoundation
+import CoreMedia
+
+enum DrageDirectionEnum: Int {
+    case unknown
+    case leftUp
+    case leftDown
+    case rightUp
+    case rightDown
+    case left
+    case right
+}
 
 class PlayerManager: NSObject {
 
-    var playerView: BPPlayerView!
-    var timer: Timer?
-    fileprivate var isSliding = false
-    fileprivate var isShowToolBar = false
+    fileprivate var playerView: BPPlayerView!
+    fileprivate var timer: Timer?
+    fileprivate var isSliding      = false
+    fileprivate var isShowToolBar  = true
+    fileprivate var firstPoint     = CGPoint.zero
+    fileprivate var secondPoint    = CGPoint.zero
+    fileprivate var lastPoint      = CGPoint.zero
+    fileprivate var drageDirection = DrageDirectionEnum.unknown
+    fileprivate var totalTime      = Float.zero
 
     init(path: String, frame: CGRect) {
         super.init()
@@ -77,16 +93,16 @@ class PlayerManager: NSObject {
 
     // TODO: UI操作回调函数
 
-    @objc func clickBackBtn(_ button: UIButton) {
+    @objc private  func clickBackBtn(_ button: UIButton) {
            hideVideoView()
        }
 
-    @objc func clickMenuBtn(_ button: UIButton) {
+    @objc private  func clickMenuBtn(_ button: UIButton) {
 
     }
 
     /// 点击倍速
-    @objc func clickSpeedBtn(_ button: UIButton) {
+    @objc private  func clickSpeedBtn(_ button: UIButton) {
         button.isSelected = !button.isSelected
         if button.isSelected {
             setSpeedPlay(2)
@@ -114,7 +130,6 @@ class PlayerManager: NSObject {
 
     /// 滑动进度条中
     @objc private func draggingSlider(_ slider: UISlider) {
-        let totalTime = Float(playerView.playerItem?.duration.seconds ?? 0.0)
         let currentTime = totalTime * slider.value
         seekToVideo(startTime: Int64(currentTime))
     }
@@ -132,7 +147,7 @@ class PlayerManager: NSObject {
         playerView.player.rate = rate
     }
 
-    func seekToVideo(startTime time: Int64) {
+    private func seekToVideo(startTime time: Int64) {
         let cmTime = CMTimeMake(value: time, timescale: 1)
         playerView.player.seek(to: cmTime) { (finish) in
             if finish {
@@ -144,6 +159,7 @@ class PlayerManager: NSObject {
      /// 显示上下工具栏
     private func showToolBar() {
         startToolBarTimer()
+        if isShowToolBar { return }
         isShowToolBar = true
         UIView.animate(withDuration: 0.25) {
             self.playerView.headerView.transform = .identity
@@ -154,6 +170,7 @@ class PlayerManager: NSObject {
      /// 隐藏上下工具栏
     @objc private func hideToolBar() {
         invalidateToolBarTimer()
+        if !isShowToolBar { return }
         isShowToolBar = false
         UIView.animate(withDuration: 0.25) {
             self.playerView.headerView.transform = CGAffineTransform(translationX: 0, y: -self.playerView.headerView.bottom)
@@ -179,13 +196,13 @@ class PlayerManager: NSObject {
     }
 
     /// 暂停视频
-    func pauseVideo() {
+    private func pauseVideo() {
         playerView.playButton.isSelected = true
         playerView.player.pause()
     }
 
     /// 显示视频播放页
-    func showVideoView() {
+    private func showVideoView() {
         UIView.animate(withDuration: 0.25, animations: {
             self.playerView.transform = CGAffineTransform(translationX: 0, y: -kScreenHeight)
         }) { (finish) in
@@ -196,7 +213,7 @@ class PlayerManager: NSObject {
     }
 
     /// 隐藏视频播放页
-    func hideVideoView() {
+    private func hideVideoView() {
         UIView.animate(withDuration: 0.25, animations: {
             self.playerView.transform = .identity
             self.pauseVideo()
@@ -207,9 +224,34 @@ class PlayerManager: NSObject {
         }
     }
 
+    /// 调节进度
+    private func changeVideoProgress(progressValue value:Float) {
+        playerView.playerItem?.cancelPendingSeeks()
+
+        DispatchQueue.main.async {
+            UIView.animate(withDuration: 0.1) {
+                self.playerView.progressSliderView.value = value / self.totalTime
+            }
+            self.playerView.leftTimeLabel.text = self.transformTime(Int(value))
+            self.seekToVideo(startTime: Int64(value))
+        }
+    }
+
+    /// 调节亮度
+    private func changeBrightness(_ rate: CGFloat) {
+        print(rate)
+        UIScreen.main.brightness += rate
+        print("当前是:\(UIScreen.main.brightness)")
+    }
+
+    /// 调节声音
+    private func changeVolume(_ rate: CGFloat) {
+        // 先获取系统 MPVolumeView 的控件,然后在赋值即可,一般重写会好些
+    }
+
     // TODO: 手势处理
 
-    @objc func singleTapScreenView(_ sender: UITapGestureRecognizer) {
+    @objc private  func singleTapScreenView(_ sender: UITapGestureRecognizer) {
         if isShowToolBar {
             hideToolBar()
         } else {
@@ -217,7 +259,7 @@ class PlayerManager: NSObject {
         }
     }
 
-    @objc func doubleTapScreenView(_ sender: UITapGestureRecognizer) {
+    @objc private  func doubleTapScreenView(_ sender: UITapGestureRecognizer) {
         if playerView.playButton.isSelected {
             playVideo()
             hideToolBar()
@@ -227,12 +269,56 @@ class PlayerManager: NSObject {
         }
     }
 
-    @objc func panScreenView(_ sender: UIPanGestureRecognizer) {
-        print("panScreenView")
+    @objc private  func panScreenView(_ pan: UIPanGestureRecognizer) {
+        switch pan.state {
+        case .began:
+            print("开始滑动")
+            pauseVideo()
+            isSliding = true
+            invalidateToolBarTimer()
+            firstPoint = pan.location(in: playerView)
+            drageDirection = .unknown
+        case .changed:
+            secondPoint = pan.location(in: playerView)
+            let horizontalValue = secondPoint.x - firstPoint.x
+            let verticalValue   = secondPoint.y - firstPoint.y
+            var progressValue   = Float.zero
+            switch drageDirection {
+            case .left, .right:
+                progressValue = Float(secondPoint.x - lastPoint.x)
+                progressValue = Float(playerView.playerItem?.currentTime().seconds ?? 0) + progressValue
+                self.changeVideoProgress(progressValue: progressValue)
+            case .leftUp, .leftDown:
+                progressValue = Float(lastPoint.y - secondPoint.y)
+                let rate = CGFloat(progressValue) / kScreenHeight
+                changeBrightness(rate)
+            case .rightUp:
+                print("leftUp")
+            case .rightDown:
+                print("leftUp")
+            case .unknown:
+            if abs(horizontalValue) > abs(verticalValue) {
+                drageDirection = horizontalValue > 0 ? .right : .left
+            } else {
+                if firstPoint.x < playerView.width/2 {
+                    drageDirection = verticalValue > 0 ? .leftDown : .leftUp
+                } else {
+                    drageDirection = verticalValue > 0 ? .rightDown : .rightUp
+                }
+            }
+            }
+
+            lastPoint = secondPoint
+        default:
+            print("滑动结束")
+            playVideo()
+            isSliding = false
+            startToolBarTimer()
+        }
     }
 
     // TODO: 通知 & 监听
-    @objc func deviceRotateNotification() {
+    @objc private  func deviceRotateNotification() {
         switch UIDevice.current.orientation {
         case .portrait:
             playerView.headerView.snp.updateConstraints { (make) in
@@ -251,23 +337,25 @@ class PlayerManager: NSObject {
         }
     }
 
-    @objc func playFinishNotification() {
+    @objc private  func playFinishNotification() {
         pauseVideo()
+        showToolBar()
+        invalidateToolBarTimer()
     }
 
     /// 更新时间事件
-    func refreshTimeObserver(_ time: CMTime) {
+    private func refreshTimeObserver(_ time: CMTime) {
         guard let item = playerView.playerItem else {
             return
         }
-        let totalTime   = item.duration.seconds
+        totalTime       = Float(item.duration.seconds)
         let currentTime = time.seconds
         if totalTime.isNaN || currentTime.isNaN {
             return
         }
         // 更新sliderView
         if !isSliding {
-            playerView.progressSliderView.value = Float(currentTime/totalTime)
+            playerView.progressSliderView.value = Float(currentTime)/totalTime
         }
         // 更新显示的时间
         playerView.leftTimeLabel.text  = transformTime(Int(currentTime))
@@ -276,9 +364,16 @@ class PlayerManager: NSObject {
 
     // TODO: 工具函数
     private func transformTime(_ time: Int) -> String {
-        let hour   = time / 3600
-        let minute = time % 3600 / 60
-        let second = time % 60
+        var _time = time
+
+        if time < 0 || totalTime == .nan {
+            _time = 0
+        } else if time > Int(totalTime) {
+            _time = Int(totalTime)
+        }
+        let hour   = _time / 3600
+        let minute = _time % 3600 / 60
+        let second = _time % 60
         return String(format: "%02ld:%02ld:%02ld", hour, minute, second)
     }
 }
