@@ -32,12 +32,13 @@ class FileTableViewCell: UITableViewCell {
             make.right.equalToSuperview().offset(-30)
             make.height.equalToSuperview()
         }
-        
+
+        selectionStyle = .none
         iconLabel.font = UIFont.iconFont(size: 30)
         nameLabel.font = UIFont.systemFont(ofSize: 18)
-        iconLabel.textColor = UIColor.blue1
-        nameLabel.textColor = UIColor.black1
-        selectionStyle = .none
+        iconLabel.textColor     = UIColor.blue1
+        nameLabel.textColor     = UIColor.black1
+        nameLabel.lineBreakMode = .byTruncatingMiddle
     }
     
     func makeData(_ model: BPFileModel) {

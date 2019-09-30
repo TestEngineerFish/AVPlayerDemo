@@ -16,7 +16,6 @@ class BPPlayerView: UIView {
     fileprivate let footerViewHeight: CGFloat = 40
     fileprivate let padding: CGFloat          = 10
     fileprivate let aspectRatio: CGFloat      = kScreenHeight/kScreenWidth
-    fileprivate var isSliding                 = false
 
     var playerItem: AVPlayerItem?
     let player             = AVPlayer()
@@ -50,7 +49,6 @@ class BPPlayerView: UIView {
         makeSubviews()
         makeHeaderSubviews()
         makeFooterSubviews()
-        addNotifications()
     }
 
     /// 设置子视图
@@ -78,7 +76,7 @@ class BPPlayerView: UIView {
         // 设置顶部视图
         coverView.addSubview(headerView)
         headerView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-        let topHeight = UIDevice.current.orientation == .faceUp ? kStatusBarHeight : 0
+        let topHeight = UIDevice.current.orientation == .portrait ? kStatusBarHeight : 0
         headerView.snp.makeConstraints { (make) in
             make.top.equalToSuperview().offset(topHeight)
             make.left.width.equalToSuperview()
@@ -107,7 +105,6 @@ class BPPlayerView: UIView {
         backButton.setTitle(IconFont.back.rawValue, for: .normal)
         backButton.titleLabel?.font = UIFont.iconFont(size: 18)
         backButton.setTitleColor(UIColor.white, for: .normal)
-        backButton.addTarget(self, action: #selector(clickBackBtn(_:)), for: .touchUpInside)
         backButton.snp.makeConstraints { (make) in
             make.left.equalToSuperview().offset(15)
             make.top.bottom.equalToSuperview()
@@ -120,7 +117,6 @@ class BPPlayerView: UIView {
         menuButton.setTitle(IconFont.menu.rawValue, for: .normal)
         menuButton.titleLabel?.font = UIFont.iconFont(size: 18)
         menuButton.setTitleColor(UIColor.white, for: .normal)
-        menuButton.addTarget(self, action: #selector(clickMenuBtn(_:)), for: .touchUpInside)
         menuButton.snp.makeConstraints { (make) in
             make.right.equalToSuperview().offset(-15)
             make.top.bottom.equalToSuperview()
@@ -147,7 +143,6 @@ class BPPlayerView: UIView {
         playButton.setTitle(IconFont.play.rawValue, for: .selected)
         playButton.setTitleColor(UIColor.white, for: .normal)
         playButton.titleLabel?.font = UIFont.iconFont(size: 18)
-        playButton.addTarget(self, action: #selector(clickPlayBtn(_:)), for: .touchUpInside)
         playButton.snp.makeConstraints { (make) in
             make.left.equalToSuperview().offset(15)
             make.top.bottom.equalToSuperview()
@@ -168,7 +163,6 @@ class BPPlayerView: UIView {
         speedButton.setTitle("2x", for: .selected)
         speedButton.setTitleColor(UIColor.white, for: .normal)
         speedButton.titleLabel?.font = UIFont.iconFont(size: 18)
-        speedButton.addTarget(self, action: #selector(clickSpeedBtn(_:)), for: .touchUpInside)
         speedButton.snp.makeConstraints { (make) in
             make.right.equalToSuperview().offset(-15)
             make.top.bottom.equalToSuperview()
@@ -189,11 +183,6 @@ class BPPlayerView: UIView {
         progressSliderView.maximumValue = 1.0
         progressSliderView.minimumTrackTintColor = UIColor.orange1
         progressSliderView.maximumTrackTintColor = UIColor.clear
-        progressSliderView.addTarget(self, action: #selector(willDragSlider(_:)), for: .touchDown)
-        progressSliderView.addTarget(self, action: #selector(draggingSlider(_:)), for: .valueChanged)
-        progressSliderView.addTarget(self, action: #selector(finishDragSlider(_:)), for: .touchUpInside)
-        progressSliderView.addTarget(self, action: #selector(finishDragSlider(_:)), for: .touchDragOutside)
-        progressSliderView.addTarget(self, action: #selector(finishDragSlider(_:)), for: .touchDragExit)
         progressSliderView.snp.makeConstraints { (make) in
             make.left.equalTo(leftTimeLabel.snp.right).offset(padding)
             make.right.equalTo(rightTimeLabel.snp.left).offset(-padding)
@@ -222,209 +211,16 @@ class BPPlayerView: UIView {
         playerItem = getPlayItem(vidoPath: path)
         player.replaceCurrentItem(with: playerItem)
         playerLayer = AVPlayerLayer(player: player)
-
-        // 添加监听
-        player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue: .main) { (time) in
-            self.refreshTimeObserver(time)
-        }
-    }
-
-
-    private func addNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(playFinishNotification), name: Notification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceRotateNotification), name: UIDevice.orientationDidChangeNotification, object: nil)
-    }
-
-    // TODO: 通知处理
-    @objc func playFinishNotification() {
-        pauseVideo()
-    }
-
-    @objc func deviceRotateNotification() {
-        switch UIDevice.current.orientation {
-        case .portrait:
-            headerView.snp.updateConstraints { (make) in
-                make.top.equalToSuperview().offset(kStatusBarHeight)
-            }
-        case .landscapeLeft, .landscapeRight, .portraitUpsideDown:
-            headerView.snp.updateConstraints { (make) in
-                make.top.equalToSuperview()
-            }
-        default:
-            break
-        }
-        UIView.animate(withDuration: 0.25) {
-            self.frame = CGRect(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight)
-            self.playerLayer.frame = CGRect(x: 0, y: 0, width: kScreenWidth, height: kScreenHeight)
-        }
-    }
-
-    // TODO: 手势处理
-
-    @objc func singleTapScreenView(_ sender: UITapGestureRecognizer) {
-        print("singleTapScreenView")
-        if headerView.transform.ty == .zero {
-            hideToolBar()
-        } else {
-            showToolBar()
-        }
-    }
-
-    @objc func doubleTapScreenView(_ sender: UITapGestureRecognizer) {
-        print("doubleTapScreenView")
-        if playButton.isSelected {
-            playVideo()
-        } else {
-            pauseVideo()
-        }
-    }
-
-    @objc func panScreenView(_ sender: UIPanGestureRecognizer) {
-        print("panScreenView")
-    }
-
-    // TODO: 事件处理
-
-    func playVideo() {
-        playButton.isSelected = false
-        self.player.play()
-    }
-
-    func pauseVideo() {
-        playButton.isSelected = true
-        self.player.pause()
-    }
-
-    func seekToVideo(startTime time: Int64) {
-        let cmTime = CMTimeMake(value: time, timescale: 1)
-        player.seek(to: cmTime) { (finish) in
-            if finish {
-                self.playVideo()
-            }
-        }
-    }
-
-    /// 显示视频播放页
-    func showVideo() {
-        UIView.animate(withDuration: 0.25, animations: {
-            self.transform = CGAffineTransform(translationX: 0, y: -kScreenHeight)
-        }) { (finish) in
-            if finish {
-                self.playVideo()
-            }
-        }
-    }
-
-    /// 隐藏视频播放页
-    func hideVideo() {
-        UIView.animate(withDuration: 0.25, animations: {
-            self.transform = .identity
-            self.pauseVideo()
-        }) { (finish) in
-            if finish {
-                self.removeFromSuperview()
-            }
-        }
-    }
-    
-     /// 隐藏上下工具栏
-    func hideToolBar() {
-        UIView.animate(withDuration: 0.25) {
-            self.headerView.transform = CGAffineTransform(translationX: 0, y: -self.headerView.bottom)
-            self.footerView.transform = CGAffineTransform(translationX: 0, y: kScreenHeight - self.footerView.top)
-        }
-    }
-    
-   
-     /// 显示上下工具栏
-    private func showToolBar() {
-        UIView.animate(withDuration: 0.25) {
-            self.headerView.transform = .identity
-            self.footerView.transform = .identity
-        }
-    }
-   
-    private func setSpeedPlay(_ rate: Float) {
-        player.rate = rate
-    }
-
-    @objc func clickBackBtn(_ button: UIButton) {
-        hideVideo()
-    }
-
-    @objc func clickMenuBtn(_ button: UIButton) {
-
-    }
-
-    @objc func clickPlayBtn(_ button: UIButton) {
-        button.isSelected = !button.isSelected
-        if button.isSelected {
-            pauseVideo()
-        } else {
-            playVideo()
-        }
-    }
-//SOZ20190828676672
-    @objc func clickSpeedBtn(_ button: UIButton) {
-        button.isSelected = !button.isSelected
-        if button.isSelected {
-            setSpeedPlay(2)
-        } else {
-            setSpeedPlay(1)
-        }
-    }
-
-    @objc func willDragSlider(_ slider: UISlider) {
-        pauseVideo()
-        isSliding = true
-    }
-
-    @objc func draggingSlider(_ slider: UISlider) {
-        let totalTime = Float(playerItem?.duration.seconds ?? 0.0)
-        let currentTime = totalTime * slider.value
-        seekToVideo(startTime: Int64(currentTime))
-    }
-
-    @objc func finishDragSlider(_ slider: UISlider) {
-        playVideo()
-        isSliding = false
-    }
-
-    /// 更新时间事件
-    func refreshTimeObserver(_ time: CMTime) {
-        guard let item = playerItem else {
-            return
-        }
-        let totalTime   = item.duration.seconds
-        let currentTime = time.seconds
-        if totalTime.isNaN || currentTime.isNaN {
-            return
-        }
-        // 更新sliderView
-        if !isSliding {
-            progressSliderView.value = Float(currentTime/totalTime)
-        }
-        // 更新显示的时间
-        leftTimeLabel.text  = transformTime(Int(currentTime))
-        rightTimeLabel.text = transformTime(Int(totalTime))
     }
 
     // TODO: 工具函数
 
     private func getPlayItem(vidoPath path: String) -> AVPlayerItem? {
         // 编码文件名,以放有中文导致存储失败
-        let charSet = CharacterSet.urlQueryAllowed
-        guard let _path   = path.addingPercentEncoding(withAllowedCharacters: charSet) else { return nil }
-        let url     = URL(fileURLWithPath: _path)
+//        let charSet = CharacterSet.urlQueryAllowed
+//        guard let _path   = path.addingPercentEncoding(withAllowedCharacters: charSet) else { return nil }
+        let url     = URL(fileURLWithPath: path)
         let item    = AVPlayerItem(url: url)
         return item
     }
-
-    private func transformTime(_ time: Int) -> String {
-        let hour   = time / 3600
-        let minute = time % 3600 / 60
-        let second = time % 60
-        return String(format: "%02ld:%02ld:%02ld", hour, minute, second)
-    }
-
 }

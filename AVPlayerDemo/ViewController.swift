@@ -15,6 +15,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     var playerManager: PlayerManager?
     var documentPath: String?
     var documentList = [BPFileModel]()
+    var playManager: PlayerManager?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,20 +64,22 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let fileModel = documentList[indexPath.row]
-        if fileModel.type == .folder {
+        switch fileModel.type {
+        case .folder:
             let vc = ViewController()
             vc.title = fileModel.name
             vc.documentPath = fileModel.path
             self.navigationController?.pushViewController(vc, animated: true)
-        } else {
+        case .audiovisual:
             guard let path = fileModel.path else {
                 self.view.toast("路径无效")
                 return
             }
-            let manager = PlayerManager(path: path, frame: kWindow.bounds)
-            manager.playVideo()
+            playManager = PlayerManager(path: path, frame: kWindow.bounds)
+            playManager?.playVideo()
+        default:
+            self.view.toast("暂不支持的文件类型")
         }
-        
     }
 
     override var prefersStatusBarHidden: Bool {
