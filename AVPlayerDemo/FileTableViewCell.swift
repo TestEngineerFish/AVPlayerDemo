@@ -39,6 +39,7 @@ class FileTableViewCell: UITableViewCell {
         iconLabel.textColor     = UIColor.blue1
         nameLabel.textColor     = UIColor.black1
         nameLabel.lineBreakMode = .byTruncatingMiddle
+
     }
     
     func makeData(_ model: BPFileModel) {

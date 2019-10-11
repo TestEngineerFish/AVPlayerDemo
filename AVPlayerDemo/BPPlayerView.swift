@@ -34,10 +34,12 @@ class BPPlayerView: UIView {
     let loadView           = UIActivityIndicatorView(style: .white)
 
     fileprivate var timer: Timer?
-
-    override init(frame: CGRect) {
-        super.init(frame: CGRect(x: frame.origin.x, y: kScreenHeight, width: frame.width, height: frame.height))
-        isUserInteractionEnabled = true
+    
+    init(frame: CGRect, path: String) {
+        super.init(frame: CGRect(x: 0, y: kScreenHeight, width: frame.width, height: frame.height))
+        makeData(path)
+        makeUI()
+        self.playerItem?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: nil)
     }
 
     required init?(coder: NSCoder) {
@@ -57,6 +59,7 @@ class BPPlayerView: UIView {
         // 设置当前视图
         kWindow.addSubview(self)
         self.backgroundColor = UIColor.black
+        isUserInteractionEnabled = true
 
         // 设置播放视图
         layer.addSublayer(playerLayer)
@@ -208,19 +211,28 @@ class BPPlayerView: UIView {
         } catch {
             print("音频类别设置错误!!!")
         }
-        playerItem = getPlayItem(vidoPath: path)
+        let assetKeys = [
+            "playable",
+            "hasProtectedContent"
+        ]
+        let fileUrl = URL(fileURLWithPath: path)
+        let asset = AVAsset(url: fileUrl)
+        playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: assetKeys)
         player.replaceCurrentItem(with: playerItem)
         playerLayer = AVPlayerLayer(player: player)
     }
 
-    // TODO: 工具函数
-
-    private func getPlayItem(vidoPath path: String) -> AVPlayerItem? {
-        // 编码文件名,以放有中文导致存储失败
-//        let charSet = CharacterSet.urlQueryAllowed
-//        guard let _path   = path.addingPercentEncoding(withAllowedCharacters: charSet) else { return nil }
-        let url     = URL(fileURLWithPath: path)
-        let item    = AVPlayerItem(url: url)
-        return item
+    // TODO: KVO
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == #keyPath(AVPlayerItem.status) {
+            switch self.player.status {
+            case .readyToPlay:
+                print("可以播放了")
+            case .failed:
+                print("播放失败,原因是:" + self.player.error.debugDescription)
+            default:
+                print("未知状态")
+            }
+        }
     }
 }

@@ -34,14 +34,16 @@ class PlayerManager: NSObject {
 
     init(path: String, frame: CGRect) {
         super.init()
-        playerView = BPPlayerView(frame: frame)
-        playerView?.makeData(path)
-        playerView?.makeUI()
-        addNotification()
-        addTargetFunction()
-        addGresture()
-        startToolBarTimer()
-        showVideoView()
+        playerView = BPPlayerView(frame: frame, path: path)
+        if playerView.playerItem?.asset.isPlayable ?? false{
+            addNotification()
+            addTargetFunction()
+            addGresture()
+            startToolBarTimer()
+            showVideoView()
+        } else {
+            BPAlertManager.showAlertZeroBtn(title: "播放失败", description: "不支持此类型视频播放")
+        }
     }
 
     deinit {
@@ -54,6 +56,7 @@ class PlayerManager: NSObject {
         // 添加通知
         NotificationCenter.default.addObserver(self, selector: #selector(playFinishNotification), name: Notification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deviceRotateNotification), name: UIDevice.orientationDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(audioRouteChange), name: AVAudioSession.routeChangeNotification, object: nil)
         // 添加监听
         playerView.player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue: .main) { (time) in
             self.refreshTimeObserver(time)
@@ -84,7 +87,7 @@ class PlayerManager: NSObject {
         doubleTap.numberOfTouchesRequired = 1
         playerView.addGestureRecognizer(doubleTap)
         let pan = UIPanGestureRecognizer(target: self, action: #selector(panScreenView(_:)))
-//        pan.delegate = self
+        //        pan.delegate = self
         playerView.addGestureRecognizer(pan)
 
         singleTap.require(toFail: doubleTap)
@@ -94,8 +97,8 @@ class PlayerManager: NSObject {
     // TODO: UI操作回调函数
 
     @objc private  func clickBackBtn(_ button: UIButton) {
-           hideVideoView()
-       }
+        hideVideoView()
+    }
 
     @objc private  func clickMenuBtn(_ button: UIButton) {
 
@@ -156,7 +159,7 @@ class PlayerManager: NSObject {
         }
     }
 
-     /// 显示上下工具栏
+    /// 显示上下工具栏
     private func showToolBar() {
         startToolBarTimer()
         if isShowToolBar { return }
@@ -167,7 +170,7 @@ class PlayerManager: NSObject {
         }
     }
 
-     /// 隐藏上下工具栏
+    /// 隐藏上下工具栏
     @objc private func hideToolBar() {
         invalidateToolBarTimer()
         if !isShowToolBar { return }
@@ -181,6 +184,7 @@ class PlayerManager: NSObject {
     /// 自动隐藏上下工具栏的计时器
     private func startToolBarTimer() {
         timer = Timer.scheduledTimer(timeInterval: 6, target: self, selector: #selector(hideToolBar), userInfo: nil, repeats: false)
+        RunLoop.current.add(timer!, forMode: .common)
     }
 
     /// 销毁计时器
@@ -215,12 +219,10 @@ class PlayerManager: NSObject {
     /// 隐藏视频播放页
     private func hideVideoView() {
         UIView.animate(withDuration: 0.25, animations: {
-            self.playerView.transform = .identity
             self.pauseVideo()
+            self.playerView.transform = .identity
         }) { (finish) in
-            if finish {
-                self.playerView.removeFromSuperview()
-            }
+            self.playerView.removeFromSuperview()
         }
     }
 
@@ -297,15 +299,15 @@ class PlayerManager: NSObject {
             case .rightDown:
                 print("leftUp")
             case .unknown:
-            if abs(horizontalValue) > abs(verticalValue) {
-                drageDirection = horizontalValue > 0 ? .right : .left
-            } else {
-                if firstPoint.x < playerView.width/2 {
-                    drageDirection = verticalValue > 0 ? .leftDown : .leftUp
+                if abs(horizontalValue) > abs(verticalValue) {
+                    drageDirection = horizontalValue > 0 ? .right : .left
                 } else {
-                    drageDirection = verticalValue > 0 ? .rightDown : .rightUp
+                    if firstPoint.x < playerView.width/2 {
+                        drageDirection = verticalValue > 0 ? .leftDown : .leftUp
+                    } else {
+                        drageDirection = verticalValue > 0 ? .rightDown : .rightUp
+                    }
                 }
-            }
             }
 
             lastPoint = secondPoint
@@ -318,6 +320,8 @@ class PlayerManager: NSObject {
     }
 
     // TODO: 通知 & 监听
+
+    /// 设备旋转通知
     @objc private  func deviceRotateNotification() {
         switch UIDevice.current.orientation {
         case .portrait:
@@ -337,10 +341,16 @@ class PlayerManager: NSObject {
         }
     }
 
-    @objc private  func playFinishNotification() {
+    /// 播放结束通知
+    @objc private func playFinishNotification() {
         pauseVideo()
         showToolBar()
         invalidateToolBarTimer()
+    }
+
+    ///  插拔耳机通知
+    @objc private func audioRouteChange() {
+        print("耳机插入/拔出")
     }
 
     /// 更新时间事件
